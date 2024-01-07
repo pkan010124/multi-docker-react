@@ -1,0 +1,28 @@
+sudo: required
+language: generic
+
+services:
+  - docker
+
+before_install: 
+  - docker build -t pkan010124/react-test -f ./client/Dockerfile.dev ./client
+
+script: 
+  - docker run -e CI=true pkan010124/react-test npm run test
+
+after_success: 
+  - docker build -t pkan010124/multi-client ./client
+  - docker build -t pkan010124/multi-nginx ./nginx
+  - docker build -t pkan010124/multi-server ./server
+  - docker build -t pkan010124/multi-worker ./worker
+
+  # log into docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # push the images now
+  - docker push pkan010124/multi-client
+  - docker push pkan010124/multi-nginx
+  - docker push pkan010124/multi-server
+  - docker push pkan010124/multi-worker
+
+
+
